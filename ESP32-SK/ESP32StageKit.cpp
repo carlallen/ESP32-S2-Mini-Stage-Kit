@@ -66,17 +66,19 @@ long ESP32StageKit::Update( long time_passed_ms ) {
 
   m_sleep_time = this->HandleTimeUpdate( time_passed_ms );
 
-  // Taken from StageKitPied code but not implemented.
-  // TODO: Maybe implement this?
-/*
-  if( NODATA_MS > 0 ) {
-    m_nodata_ms_count += m_sleep_time;
-    if( m_nodata_ms_count > NODATA_MS ) {
-      mWS281X.SetColourAll( LEDS_RGB_NODATA[ 0 ], LEDS_RGB_NODATA[ 1 ], LEDS_RGB_NODATA[ 2 ], NODATA_BRIGHTNESS );
+  // Turn all LEDs off if no light-show command has been received for the configured
+  // inactivity timeout. A timeout of 0 disables this.
+  if( m_ConfigServer.m_inactivity_timeout_sec > 0 ) {
+    m_nodata_ms_count += time_passed_ms;
+    if( m_nodata_ms_count > (long)m_ConfigServer.m_inactivity_timeout_sec * 1000 ) {
+      m_leds_strobe_speed_current = 0;
+      m_leds_strobe_next_on_ms    = 0;
+      mWS281X.AllOff();
+      mWS281X.Update();
       m_nodata_ms_count = 0;
     }
   }
-*/
+
   return m_sleep_time;
 }
 

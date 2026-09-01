@@ -78,6 +78,7 @@ When opened, a screen will appear allowing you to configure the LEDs. The defaul
 | **POD Brightness** | Default brightness of all LEDs, use `-1` to use individual brightness per group. |
 | **GPIO DATA** | Pin used for the WS281x data line. Default = `16`. |
 | **Colour Order** | The colour byte order your WS281x LEDs expect. Default = `GRB`. If colours look wrong (e.g. red shows as green), try changing this. |
+| **Inactivity Off (s)** | Turns all LEDs off after this many seconds without a light-show command. Default = `300`. Use `0` to disable. |
 | **Colours** | The SK colour can be changed — prefer orange instead of red? Then use `255, 255, 0`. |
 | **SK Strobe** | Default is white, but maybe you want blue or green :) |
 

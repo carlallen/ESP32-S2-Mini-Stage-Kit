@@ -52,7 +52,10 @@ void ConfigServer::ResetConfigToDefault() {
 
   // Default to individual colour group brightness
   m_pod_brightness = -1;
-  
+
+  // Default to turning all LEDs off after 300 seconds without a light-show command.
+  m_inactivity_timeout_sec = 300;
+
   // Red
   m_colour_rgb[  0 ] = 255;
   m_colour_rgb[  1 ] =   0;
@@ -148,6 +151,7 @@ void ConfigServer::SettingsSave() {
   doc[ "rb3e_port" ]         = m_rb3e_listening_port;
   doc[ "led_total" ]         = m_total_led_amount;
   doc[ "pod_brightness" ]    = m_pod_brightness;
+  doc[ "inactivity_timeout" ] = m_inactivity_timeout_sec;
   doc[ "strobe_enabled" ]    = m_strobe_enabled;
   doc[ "strobe_all" ]        = m_strobe_leds_all;
 
@@ -222,6 +226,8 @@ bool ConfigServer::SettingsLoad() {
   m_rb3e_listening_port = doc[ "rb3e_port" ];
   m_total_led_amount    = doc[ "led_total" ];
   m_pod_brightness      = doc[ "pod_brightness" ];
+  // "| 300" keeps configs saved before this setting existed defaulting to 300s instead of 0 (disabled).
+  m_inactivity_timeout_sec = doc[ "inactivity_timeout" ] | 300;
   m_strobe_enabled      = doc[ "strobe_enabled" ];
   m_strobe_leds_all     = doc[ "strobe_all" ];
 
@@ -377,15 +383,15 @@ void ConfigServer::SendMainWebPage() {
   m_WebpageBuilder.AddGridEntryNumberCell( "led_amount", m_total_led_amount, 1, 512, true );
   m_WebpageBuilder.AddGridEntryNumberCell( "pod_bright", m_pod_brightness, -1, 31, true );
 
-  // GPIO Data pin | Colour Order
+  // GPIO Data pin | Colour Order | Inactivity Off
   m_WebpageBuilder.AddGridCellText( "" );
   m_WebpageBuilder.AddGridCellText( "GPIO DATA" );
   m_WebpageBuilder.AddGridCellText( "Colour Order" );
-  m_WebpageBuilder.AddGridCellText( "" );
+  m_WebpageBuilder.AddGridCellText( "Inactivity Off (s)" );
   m_WebpageBuilder.AddGridCellText( "" );
   m_WebpageBuilder.AddGridEntryNumberCell( "gpio_data", m_gpio_data, 1, 50, true );
   m_WebpageBuilder.AddOptionSelection( "colour_order", "colour_order", WS281X_COLOUR_ORDER_NAMES, WS281X_ORDER_COUNT, m_colour_order );
-  m_WebpageBuilder.AddGridCellText( "" );
+  m_WebpageBuilder.AddGridEntryNumberCell( "inactivity_timeout", m_inactivity_timeout_sec, 0, 65535, true );
 
   // RGB Headings
   m_WebpageBuilder.AddGridCellText( "Colours" );
@@ -750,6 +756,7 @@ bool ConfigServer::HandleWebMain() {
   int pod_brightness_new      = m_pod_brightness;
   int gpio_data_new           = m_gpio_data;
   int colour_order_new        = m_colour_order;
+  int inactivity_timeout_new  = m_inactivity_timeout_sec;
 
   uint8_t colour_rgb_new[ 3 * CONFIGSERVER_NOF_COLOUR_GROUPS ];
   for( int i = 0; i < 3 * CONFIGSERVER_NOF_COLOUR_GROUPS; i++ ) {
@@ -787,6 +794,11 @@ bool ConfigServer::HandleWebMain() {
       if( colour_order_new < 0 || colour_order_new >= WS281X_ORDER_COUNT ) {
         colour_order_new = m_colour_order;
       }
+    } else if( m_ptr_WebServer->argName( i ) == "inactivity_timeout" ) {
+      inactivity_timeout_new = m_ptr_WebServer->arg( i ).toInt();
+      if( inactivity_timeout_new < 0 || inactivity_timeout_new > 65535 ) {
+        inactivity_timeout_new = m_inactivity_timeout_sec;
+      }
     }
   }
 
@@ -796,6 +808,7 @@ bool ConfigServer::HandleWebMain() {
   m_pod_brightness      = pod_brightness_new;
   m_gpio_data           = gpio_data_new;
   m_colour_order        = colour_order_new;
+  m_inactivity_timeout_sec = inactivity_timeout_new;
 
   for( int i = 0; i < 3 * CONFIGSERVER_NOF_COLOUR_GROUPS; i++ ) {
     m_colour_rgb[ i ] = colour_rgb_new[ i ];

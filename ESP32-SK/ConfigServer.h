@@ -66,9 +66,12 @@ public:
 
   // Amount of WS281x LED segments.
   int m_total_led_amount;
-  
+
   // If -1 then use individual group brightness, else use this.
   int m_pod_brightness;
+
+  // Turn all LEDs off after this many seconds without a light-show command. 0 = disabled.
+  int m_inactivity_timeout_sec;
   
   // Strobe
   bool m_strobe_enabled;
