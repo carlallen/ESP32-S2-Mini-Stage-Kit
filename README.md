@@ -15,9 +15,11 @@ The ESP32-S2 Mini StageKit is a device that shows the custom light shows program
 ###### Hardware
 ESP32-S2 Mini - I used a LONIN S2 Mini.
 
-SK9822 LEDs - I'm using 60 per M, cut and joined at 8 per side to make a square of 32.  Although more can be used :)
+WS281x LEDs (WS2812B/WS2811/NeoPixel) - I'm using 60 per M, cut and joined at 8 per side to make a square of 32.  Although more can be used :)
 
-PSU - The SK9822 LEDs are 0.06amp per segment (each segment has 3 leds @ 0.02amp).  So 70 segments is 70 x 0.06 = 4.2amp.
+Requires the Adafruit NeoPixel library, install it via the Arduino IDE Library Manager ("Adafruit NeoPixel").
+
+PSU - The WS281x LEDs are 0.06amp per segment (each segment has 3 leds @ 0.02amp).  So 70 segments is 70 x 0.06 = 4.2amp.
 
 For a 32 LED segment, I've been testing using a standard USB battery pack.
 
@@ -25,7 +27,7 @@ For a 32 LED segment, I've been testing using a standard USB battery pack.
 
 **Ensure you use the correct fuse ratings on the LED strips!**
 
-Multiple strips can be joined together using the data & clock channels, then feed each strip with it's own power.
+Multiple strips can be joined together using the data channel, then feed each strip with it's own power.
 
 Example, I use 4 strips.  Each strip has it's own fuse and PSU connection.
  - 2 strips x 70 segments = 2 x 4.2amp = 5 amp fuses.
@@ -33,10 +35,9 @@ Example, I use 4 strips.  Each strip has it's own fuse and PSU connection.
  
 **Ensure you use correct AWG rated wire for your power requirements.**
 
-Connect the SK9822...
+Connect the WS281x strip...
  - GND : Ensure it's to the Ground on the PSU/battery pack, the ESP32-S2 mini should also use the same ground.
- - C(lock) : SPI SCLK (GPIO 36) on the ESP32-S2 mini.
- - D(ata) : SPI MOSI (GPIO 35) on the ESP32-S2 mini.
+ - D(ata)(in) : GPIO 16 on the ESP32-S2 mini.
  - 5V : Positive output on PSU/battery pack.
 
 ###### Setting it up
@@ -59,15 +60,14 @@ When the device connects to your network, open a browser and point to its new IP
 Example: I set my DHCP server to assign "192.168.1.99" so I open a webbrowser for "http://192.168.1.99/"
 
 When opened a screen will appear allowing you to configure the leds.
-The default settings are for ESP32-S2 mini Lonin with 32xSK9822 LED segments.
+The default settings are for ESP32-S2 mini Lonin with 32xWS281x LED segments.
 
 RB3E IP : Set as the IP of the device where the data will come from, or leave blank to accept from anywhere.
 RB3E Port : The listening port.  Hardware = 21070  Xenia = 20050 or 21070 (if fixed)
 Ledstrip LEDs : Number of LED segments in the lightstrip.  Default = 32
 POD Brightness : Default brightness of all LEDs, use -1 to use individual brightness per group.
-GPIO MOSI : Pin used for Master Out Slave In.  Default = 35
-GPIO SCLK : Pin used for Clock.  Default = 36
-DMA : Default = 1
+GPIO DATA : Pin used for the WS281x data line.  Default = 16
+Colour Order : The colour byte order your WS281x LEDs expect.  Default = GRB.  If colours look wrong (e.g. red shows as green), try changing this.
 Colours : SK colour can be changed, prefer orange instead of red? Then use 255, 255, 0
 SK Strobe : Default is white, but maybe you want blue or green :)
 

@@ -10,7 +10,7 @@
 #include "ConfigServer.h"
 #include "StageKitConsts.h"
 #include "RB3E_Network.h"
-#include "SK9822.h"
+#include "WS281X.h"
 
 class ESP32StageKit {
 public:
@@ -44,7 +44,7 @@ private:
   bool               m_is_started;
 
   // LEDs
-  SK9822             mSK9822;
+  WS281X             mWS281X;
   
   // Networking
   RB3E_Network       mRB3E_Network;

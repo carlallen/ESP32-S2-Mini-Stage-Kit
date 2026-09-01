@@ -163,6 +163,18 @@ void WebpageBuilder::AddEnabledSelection( const String& name, const String& id, 
   m_html += ">Disabled</option></select>";
 }
 
+void WebpageBuilder::AddOptionSelection( const String& name, const String& id, const char* const* option_labels, int num_options, int selected_index ) {
+  m_html += "<select name=\"" + name + "\" id=\"" + id + "\">";
+  for( int i = 0; i < num_options; i++ ) {
+    m_html += "<option value=\"" + String( i ) + "\"";
+    if( i == selected_index ) {
+      m_html += " selected";
+    }
+    m_html += ">" + String( option_labels[ i ] ) + "</option>";
+  }
+  m_html += "</select>";
+}
+
 void WebpageBuilder::AddSpace( int amount ) {
   for( int i = 0; i < amount; i++ )
   {

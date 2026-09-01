@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include "FS.h"
 #include "WebpageBuilder.h"
+#include "WS281X.h"
 
 const String HOTSPOT_SSID = "ESP32_StageKit";
 const String HOTSPOT_PASS = "1234567890";  // Has to be minimum 10 digits?
@@ -44,10 +45,12 @@ public:
   String m_wifi_subnet;
 
   // Actual Config Data
-  int m_gpio_mosi;
-  int m_gpio_sclk;
-  int m_dma_channel;
-  int m_clock_speed_hz;
+
+  // GPIO pin connected to the WS281x data line.
+  int m_gpio_data;
+
+  // Colour byte order sent to the WS281x LEDs. One of the WS281XColourOrder values. Default = WS281X_ORDER_GRB.
+  int m_colour_order;
 
   // Makes the main loop pause to conserve CPU.
   // Need loop to be quicker when STROBE_ON has been issued.
@@ -61,7 +64,7 @@ public:
   // RB3E XENIA     = 20050  (Byte flipped because endianness isn't checked in my Xenia version)
   int m_rb3e_listening_port;
 
-  // Amount of SK9822 LED segments.
+  // Amount of WS281x LED segments.
   int m_total_led_amount;
   
   // If -1 then use individual group brightness, else use this.

@@ -72,7 +72,7 @@ long ESP32StageKit::Update( long time_passed_ms ) {
   if( NODATA_MS > 0 ) {
     m_nodata_ms_count += m_sleep_time;
     if( m_nodata_ms_count > NODATA_MS ) {
-      mSK9822.SetColourAll( LEDS_RGB_NODATA[ 0 ], LEDS_RGB_NODATA[ 1 ], LEDS_RGB_NODATA[ 2 ], NODATA_BRIGHTNESS );
+      mWS281X.SetColourAll( LEDS_RGB_NODATA[ 0 ], LEDS_RGB_NODATA[ 1 ], LEDS_RGB_NODATA[ 2 ], NODATA_BRIGHTNESS );
       m_nodata_ms_count = 0;
     }
   }
@@ -85,9 +85,7 @@ void ESP32StageKit::HandleWebServerData() {
 }
 
 void ESP32StageKit::ConfigChanged() {
-  void Setup( const int number_leds, const int gpio_sclk, const int gpio_mosi, const int clock_speed_hz, const int dma_channel );
-
-  mSK9822.Setup( m_ConfigServer.m_total_led_amount, m_ConfigServer.m_gpio_sclk, m_ConfigServer.m_gpio_mosi, m_ConfigServer.m_clock_speed_hz, m_ConfigServer.m_dma_channel );
+  mWS281X.Setup( m_ConfigServer.m_total_led_amount, m_ConfigServer.m_gpio_data, m_ConfigServer.m_colour_order );
 }
 
 void ESP32StageKit::Stop() {
@@ -125,8 +123,8 @@ void ESP32StageKit::HandleRumbleData( uint8_t left_weight, uint8_t right_weight 
     case SKRUMBLEDATA::SK_STROBE_OFF:
       m_leds_strobe_speed_current = 0;
       m_leds_strobe_next_on_ms = 0;
-      mSK9822.AllOff();
-      mSK9822.Update();
+      mWS281X.AllOff();
+      mWS281X.Update();
       break;
     case SKRUMBLEDATA::SK_STROBE_SPEED_1:
       m_leds_strobe_speed_current = 1;
@@ -147,8 +145,8 @@ void ESP32StageKit::HandleRumbleData( uint8_t left_weight, uint8_t right_weight 
     case SKRUMBLEDATA::SK_ALL_OFF:
       m_leds_strobe_speed_current = 0;
       m_leds_strobe_next_on_ms = 0;
-      mSK9822.AllOff();
-      mSK9822.Update();
+      mWS281X.AllOff();
+      mWS281X.Update();
       break;
     default:
       break;
@@ -184,11 +182,11 @@ void ESP32StageKit::HandleColourUpdate( uint8_t colour_number, uint8_t groups_to
     m_tmp_number_leds = m_ConfigServer.m_group_led_amount[ m_tmp_array_position + sk_led_number ];
 
     for( int i = 0; i < m_tmp_number_leds; i++ ) {
-      mSK9822.SetColour( m_tmp_led_numbers[ i ],  m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
+      mWS281X.SetColour( m_tmp_led_numbers[ i ],  m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
     }
   }
 
-  mSK9822.Update();
+  mWS281X.Update();
 }
 
 long ESP32StageKit::HandleTimeUpdate( long time_passed_ms ) {
@@ -213,15 +211,15 @@ long ESP32StageKit::HandleTimeUpdate( long time_passed_ms ) {
         m_tmp_blue_value  = m_ConfigServer.m_colour_rgb[ 14 ];
 
         if( m_ConfigServer.m_strobe_leds_all ) {
-          mSK9822.SetColourAll( m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
+          mWS281X.SetColourAll( m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
         } else {
           m_tmp_number_leds = m_ConfigServer.m_group_led_amount[ 4 * 8 ];  // Strobe is stored as colour_number 4
           m_tmp_led_numbers = m_ConfigServer.m_group_leds[ 4 * 8 ];
           for( int i = 0; i <  m_tmp_number_leds; i++ ) {
-            mSK9822.SetColour( m_tmp_led_numbers[ i ], m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
+            mWS281X.SetColour( m_tmp_led_numbers[ i ], m_tmp_red_value, m_tmp_green_value, m_tmp_blue_value, m_tmp_brightness );
           }
         }
-        mSK9822.Update();
+        mWS281X.Update();
       }
       delay( 10 );
 
@@ -229,8 +227,8 @@ long ESP32StageKit::HandleTimeUpdate( long time_passed_ms ) {
       m_leds_strobe_next_on_ms -= time_passed_ms;
 
       // Strobe OFF
-      mSK9822.AllOff();
-      mSK9822.Update();
+      mWS281X.AllOff();
+      mWS281X.Update();
     }
 
     // How long till the strobe needs to be checked?

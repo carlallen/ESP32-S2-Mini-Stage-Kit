@@ -65,6 +65,8 @@ public:
   void AddGridEntryTextCell( const String& name, const String& value, bool required );
   
   void AddEnabledSelection( const String& name, const String& id, bool enabled );
+
+  void AddOptionSelection( const String& name, const String& id, const char* const* option_labels, int num_options, int selected_index );
   
   void AddSpace( int amount );
   

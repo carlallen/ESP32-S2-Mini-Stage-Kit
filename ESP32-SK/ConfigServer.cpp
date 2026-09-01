@@ -37,10 +37,8 @@ void ConfigServer::ResetConfigToDefault() {
   // Default config of 32 LEDs, with LED 1 being first LED in the string.
   // Each stage kit LED is 1:1 mapped to the 32 leds in the order of (red, green, blue, yellow) repeated 8 times
   // Strobe is enabled by flashing all LEDs
-  m_gpio_mosi      = 35;
-  m_gpio_sclk      = 36;
-  m_dma_channel    =  1;
-  m_clock_speed_hz = 1000000 * 10;
+  m_gpio_data      = 16;
+  m_colour_order   = WS281X_ORDER_GRB;
 
   m_looptime_target_strobe_off_ms = 10;
   m_looptime_target_strobe_on_ms  =  5;
@@ -49,7 +47,7 @@ void ConfigServer::ResetConfigToDefault() {
   m_rb3e_source_ip      = "0.0.0.0";
   m_rb3e_listening_port = 20050;  // Needs to be 21070 for real X360.
 
-  // Amount of SK9822 LED segments.
+  // Amount of WS281x LED segments.
   m_total_led_amount = 32;
 
   // Default to individual colour group brightness
@@ -144,10 +142,8 @@ void ConfigServer::SettingsSave() {
   doc[ "wifi_pass" ]         = m_wifi_pass;
   doc[ "wifi_ip" ]           = m_wifi_ip;
   doc[ "wifi_subnet" ]       = m_wifi_subnet;
-  doc[ "gpio_mosi" ]         = m_gpio_mosi;
-  doc[ "gpio_sclk" ]         = m_gpio_sclk;
-  doc[ "dma_channel" ]       = m_dma_channel;
-  doc[ "speed_hz" ]          = m_clock_speed_hz;
+  doc[ "gpio_data" ]         = m_gpio_data;
+  doc[ "colour_order" ]      = m_colour_order;
   doc[ "rb3e_ip" ]           = m_rb3e_source_ip;
   doc[ "rb3e_port" ]         = m_rb3e_listening_port;
   doc[ "led_total" ]         = m_total_led_amount;
@@ -220,10 +216,8 @@ bool ConfigServer::SettingsLoad() {
   m_wifi_pass           = doc[ "wifi_pass" ].as<String>();
   m_wifi_ip             = doc[ "wifi_ip" ].as<String>();
   m_wifi_subnet         = doc[ "wifi_subnet" ].as<String>();
-  m_gpio_mosi           = doc[ "gpio_mosi" ];
-  m_gpio_sclk           = doc[ "gpio_sclk" ];
-  m_dma_channel         = doc[ "dma_channel" ];
-  m_clock_speed_hz      = doc[ "speed_hz" ];
+  m_gpio_data           = doc[ "gpio_data" ];
+  m_colour_order        = doc[ "colour_order" ];
   m_rb3e_source_ip      = doc[ "rb3e_ip" ].as<String>();
   m_rb3e_listening_port = doc[ "rb3e_port" ];
   m_total_led_amount    = doc[ "led_total" ];
@@ -383,15 +377,15 @@ void ConfigServer::SendMainWebPage() {
   m_WebpageBuilder.AddGridEntryNumberCell( "led_amount", m_total_led_amount, 1, 512, true );
   m_WebpageBuilder.AddGridEntryNumberCell( "pod_bright", m_pod_brightness, -1, 31, true );
 
-  // MOSI | SCLK | DMA
+  // GPIO Data pin | Colour Order
   m_WebpageBuilder.AddGridCellText( "" );
-  m_WebpageBuilder.AddGridCellText( "GPIO MOSI" );
-  m_WebpageBuilder.AddGridCellText( "GPIO SCLK" );
-  m_WebpageBuilder.AddGridCellText( "DMA" );
+  m_WebpageBuilder.AddGridCellText( "GPIO DATA" );
+  m_WebpageBuilder.AddGridCellText( "Colour Order" );
   m_WebpageBuilder.AddGridCellText( "" );
-  m_WebpageBuilder.AddGridEntryNumberCell( "gpio_mosi", m_gpio_mosi, 1, 50, true );
-  m_WebpageBuilder.AddGridEntryNumberCell( "gpio_sclk", m_gpio_sclk, 1, 50, true );
-  m_WebpageBuilder.AddGridEntryNumberCell( "dma_channel", m_dma_channel, 1, 2, true );
+  m_WebpageBuilder.AddGridCellText( "" );
+  m_WebpageBuilder.AddGridEntryNumberCell( "gpio_data", m_gpio_data, 1, 50, true );
+  m_WebpageBuilder.AddOptionSelection( "colour_order", "colour_order", WS281X_COLOUR_ORDER_NAMES, WS281X_ORDER_COUNT, m_colour_order );
+  m_WebpageBuilder.AddGridCellText( "" );
 
   // RGB Headings
   m_WebpageBuilder.AddGridCellText( "Colours" );
@@ -754,10 +748,9 @@ bool ConfigServer::HandleWebMain() {
   int rb3e_listening_port_new = m_rb3e_listening_port;
   int total_led_amount_new    = m_total_led_amount;
   int pod_brightness_new      = m_pod_brightness;
-  int gpio_mosi_new           = m_gpio_mosi;
-  int gpio_sclk_new           = m_gpio_sclk;
-  int dma_channel_new         = m_dma_channel;
-  
+  int gpio_data_new           = m_gpio_data;
+  int colour_order_new        = m_colour_order;
+
   uint8_t colour_rgb_new[ 3 * CONFIGSERVER_NOF_COLOUR_GROUPS ];
   for( int i = 0; i < 3 * CONFIGSERVER_NOF_COLOUR_GROUPS; i++ ) {
     colour_rgb_new[ i ] = m_colour_rgb[ i ];
@@ -787,12 +780,13 @@ bool ConfigServer::HandleWebMain() {
       if( pod_brightness_new < -1 || pod_brightness_new > 31 ) {
         pod_brightness_new = m_pod_brightness;
       }
-    } else if( m_ptr_WebServer->argName( i ) == "gpio_mosi" ) {
-      gpio_mosi_new = m_ptr_WebServer->arg( i ).toInt();
-    } else if( m_ptr_WebServer->argName( i ) == "gpio_sclk" ) {
-      gpio_sclk_new = m_ptr_WebServer->arg( i ).toInt();
-    } else if( m_ptr_WebServer->argName( i ) == "dma_channel" ) {
-      dma_channel_new = m_ptr_WebServer->arg( i ).toInt();
+    } else if( m_ptr_WebServer->argName( i ) == "gpio_data" ) {
+      gpio_data_new = m_ptr_WebServer->arg( i ).toInt();
+    } else if( m_ptr_WebServer->argName( i ) == "colour_order" ) {
+      colour_order_new = m_ptr_WebServer->arg( i ).toInt();
+      if( colour_order_new < 0 || colour_order_new >= WS281X_ORDER_COUNT ) {
+        colour_order_new = m_colour_order;
+      }
     }
   }
 
@@ -800,10 +794,9 @@ bool ConfigServer::HandleWebMain() {
   m_rb3e_listening_port = rb3e_listening_port_new;
   m_total_led_amount    = total_led_amount_new;
   m_pod_brightness      = pod_brightness_new;
-  m_gpio_mosi           = gpio_mosi_new;
-  m_gpio_sclk           = gpio_sclk_new;
-  m_dma_channel         = dma_channel_new;
-  
+  m_gpio_data           = gpio_data_new;
+  m_colour_order        = colour_order_new;
+
   for( int i = 0; i < 3 * CONFIGSERVER_NOF_COLOUR_GROUPS; i++ ) {
     m_colour_rgb[ i ] = colour_rgb_new[ i ];
   }
