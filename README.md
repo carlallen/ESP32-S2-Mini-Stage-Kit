@@ -1,6 +1,6 @@
-# ESP32-S2 Mini StageKit for RockBand 3 Enhanced
+# ESP32 Mini StageKit for RockBand 3 Enhanced
 
-The ESP32-S2 Mini StageKit is a device that shows the custom light shows programmed into Rock Band 3 when using Rock Band 3 Enhanced.
+The ESP32 Mini StageKit is a device that shows the custom light shows programmed into Rock Band 3 when using Rock Band 3 Enhanced.
 
 ## Example of it in action
 
@@ -17,7 +17,7 @@ The ESP32-S2 Mini StageKit is a device that shows the custom light shows program
 
 ### Hardware
 
-- **ESP32-S2 Mini** — I used a LONIN S2 Mini.
+- **ESP32 WLED-compatible LED controller** — I used a [QuinLED Dig-Uno](https://quinled.info/quinled-dig-uno/), but any ESP32 board compatible with WLED should work.
 - **WS281x LEDs** (WS2812B/WS2811/NeoPixel) — I'm using 60/m, cut and joined at 8 per side to make a square of 32. Although more can be used :)
 - **Adafruit NeoPixel library** — install via the Arduino IDE Library Manager (`Adafruit NeoPixel`).
 - **PSU** — The WS281x LEDs draw 0.06A per segment (each segment has 3 LEDs @ 0.02A each). So 70 segments = 70 × 0.06A = 4.2A.
@@ -43,8 +43,8 @@ Connect the WS281x strip:
 
 | Pin | Connect to |
 |---|---|
-| **GND** | Ground on the PSU/battery pack — the ESP32-S2 mini should also share this ground. |
-| **D(ata)(in)** | GPIO 16 on the ESP32-S2 mini. |
+| **GND** | Ground on the PSU/battery pack — the ESP32 mini should also share this ground. |
+| **D(ata)(in)** | GPIO 16 on the ESP32 mini. |
 | **5V** | Positive output on the PSU/battery pack. |
 
 ### Setting it up
@@ -54,8 +54,8 @@ Connect the WS281x strip:
    > **WARNING: DO NOT POWER THE LEDs FROM AN EXTERNAL SOURCE UNTIL THE ESP32 HAS BEEN DISCONNECTED FROM THE PC.**
    > **YOU — HAVE — BEEN — WARNED!**
 
-2. Connect the ESP32-S2 mini via USB to a PC.
-3. On the ESP32-S2, hold the `0` button down, then press the `RST` button, then let go of the `0` button. This puts the device into program/flash mode.
+2. Connect the ESP32 mini via USB to a PC.
+3. On the ESP32, hold the `0` button down, then press the `RST` button, then let go of the `0` button. This puts the device into program/flash mode.
 4. In the Arduino IDE, click **Sketch → Upload**, then wait for the program to compile & upload to the ESP32.
 5. You'll see a lot of `%` output until it reaches 100%, then it will complain about not being able to reset the device & give an error. Don't worry, this is normal :)
 6. Disconnect the USB from the ESP32 so it's no longer connected to the PC, then power it from your PSU/battery pack.
@@ -68,7 +68,7 @@ Connect the WS281x strip:
 When the device connects to your network, open a browser and point it to its new IP.
 Example: I set my DHCP server to assign `192.168.1.99`, so I open a web browser to `http://192.168.1.99/`.
 
-When opened, a screen will appear allowing you to configure the LEDs. The default settings are for an ESP32-S2 mini Lonin with 32×WS281x LED segments.
+When opened, a screen will appear allowing you to configure the LEDs. The default settings are for an ESP32 mini Lonin with 32×WS281x LED segments.
 
 | Setting | Description |
 |---|---|
