@@ -68,7 +68,7 @@ Connect the WS281x strip:
 When the device connects to your network, open a browser and point it to its new IP.
 Example: I set my DHCP server to assign `192.168.1.99`, so I open a web browser to `http://192.168.1.99/`.
 
-When opened, a screen will appear allowing you to configure the LEDs. The default settings are for an ESP32 mini Lonin with 32×WS281x LED segments.
+When opened, a screen will appear allowing you to configure the LEDs. The default settings are for an ESP32 with 32×WS281x LED segments.
 
 | Setting | Description |
 |---|---|
